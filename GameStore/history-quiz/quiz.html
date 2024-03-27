@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="free-icon-books-2097068.png" />
+    <title>Исторический квиз</title>
+    <style>
+      :root {
+        --light-clr: rgba(254, 254, 254, 0.65);
+        --primary-clr: rgb(206, 145, 73);
+        --transparent-primary-clr: rgba(215, 131, 63, 0.4);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Multiround Pro";
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-image: url(background-quiz.jpg);
+        background-size: cover;
+        background-repeat: no-repeat;
+      }
+
+      .game-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.3);
+        box-shadow: 0 0.5px 0 1px rgba(255, 255, 255, 0.23) inset,
+          0 1px 0 0 rgba(255, 255, 255, 0.66) inset,
+          0 4px 16px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 20px;
+        padding: 40px 60px;
+        margin: 10px;
+      }
+
+      .game-container h1 {
+        font-size: clamp(1.3rem, 5vw, 2.5rem);
+        color: transparent;
+        line-height: 1.2;
+        background: url(fon-text.jpg);
+        background-clip: text;
+        -webkit-background-clip: text;
+        background-position: 0 0;
+        animation: animated-text 26s linear infinite;
+      }
+
+      .game-container p {
+        color: var(--light-clr);
+      }
+
+      @keyframes animated-text {
+        100% {
+          background-position: 100% 0;
+        }
+      }
+
+      #score {
+        position: absolute;
+        top: 2%;
+        right: 2%;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        color: var(--light-clr);
+        padding: 10px 12px;
+        box-shadow: -1px 1px 25px 14px var(--transparent-primary-clr);
+        background-color: var(--primary-clr);
+        user-select: none;
+      }
+
+      #movieImage {
+        max-width: 100%;
+        width: 550px;
+        aspect-ratio: 4/3;
+        object-fit: cover;
+        border-radius: 20px;
+        margin: 26px 20px 50px;
+        outline: 2px solid var(--primary-clr);
+        outline-offset: 5px;
+      }
+
+      .input-box {
+        position: relative;
+      }
+
+      .input-box input {
+        width: 100%;
+        height: 50px;
+        border-radius: 2rem;
+        border: 0;
+        outline: 2px solid var(--primary-clr);
+        padding: 10px 90px 10px 16px;
+        background: transparent;
+        transition: all 0.2s;
+        font-weight: 500;
+        font-size: clamp(0.8rem, 3vw, 1rem);
+        color: var(--light-clr);
+      }
+
+      .input-box input:focus {
+        outline: 3px dotted var(--primary-clr);
+        outline-offset: 0.1rem;
+      }
+
+      .input-box input::placeholder {
+        color: rgb(197, 197, 197);
+        opacity: 50%;
+        font-weight: 300;
+      }
+
+      .input-box input:-webkit-autofill,
+      .input-box input:-webkit-autofill:hover,
+      .input-box input:-webkit-autofill:focus,
+      .input-box input:-webkit-autofill:active {
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: var(--light-clr);
+        transition: background-color 5000s ease-in-out 0s;
+      }
+
+      .btn {
+        height: 44px;
+        background-image: linear-gradient(
+          45deg,
+          rgb(206, 145, 73) 15%,
+          rgb(206, 145, 73) 80%
+        );
+        border-radius: 2rem;
+        border: 0;
+        outline: 0;
+        color: var(--light-clr);
+        flex-shrink: 0;
+        font-size: clamp(0.8rem, 3vw, 1rem);
+        font-weight: 500;
+        padding: 10px 16px;
+        text-align: center;
+        text-shadow: rgba(0, 0, 0, 0.25) 0 3px 8px;
+        transition: all 0.5s;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        cursor: pointer;
+        transform: scale(1);
+        transition-duration: box-shadow 0.2s linear, transform 0.3s linear;
+      }
+
+      .submit-btn {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+      }
+
+      .btn:hover {
+        box-shadow: rgb(206, 145, 73) 0 2px 30px;
+        transform: scale(0.98);
+      }
+
+      .modal {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 10;
+        animation: fadeIn 0.6s ease-in-out 1 normal;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 40px 50px;
+        text-align: center;
+        color: var(--light-clr);
+        border-radius: 8px;
+        border: 4px solid var(--transparent-primary-clr);
+        background: rgba(34, 34, 34, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.35);
+      }
+
+      .modal-content p {
+        margin-bottom: 30px;
+      }
+
+      .modal-content .message {
+        font-size: 1.3rem;
+      }
+
+      .modal-content .btn {
+        height: unset;
+        padding: 8px 22px;
+      }
+
+      .animation {
+        animation: up-down 3s linear infinite forwards;
+      }
+
+      @keyframes up-down {
+        0%,
+        100% {
+          transform: translateY(10px);
+        }
+        25% {
+          transform: translateY(16px);
+        }
+        50% {
+          transform: translateY(8px);
+        }
+        75% {
+          transform: translateY(12px);
+        }
+      }
+
+      @media (max-width: 580px) {
+        .game-container h1 {
+          margin-top: 20px;
+        }
+
+        #score {
+          top: 3%;
+          right: 3%;
+          font-size: 1rem;
+          padding: 8px 16px;
+        }
+
+        .modal-content .message {
+          font-size: 1rem;
+        }
+
+        .modal-content .btn {
+          padding: 8px 16px;
+        }
+      }
+    </style>
+
+    <script>
+      window.console = window.console || function (t) {};
+    </script>
+  </head>
+
+  <body>
+    <div class="game-container">
+      <h1>Исторический квиз</h1>
+      <p>Определите термин по описанию</p>
+      <div id="score">Счёт: 0</div>
+      <img id="movieImage" src="Термин%201.png" alt="Movie Poster" />
+      <div class="input-box">
+        <input type="text" id="guessInput" placeholder="Введите термин" />
+        <button onclick="checkGuess()" class="submit-btn btn" role="button">
+          Ответить
+        </button>
+      </div>
+    </div>
+
+    <div id="gameOverModal" class="modal">
+      <div class="modal-content"></div>
+    </div>
+  </body>
+
+  <script id="rendered-js">
+    const modal = document.getElementById("gameOverModal");
+    const guessInput = document.getElementById("guessInput");
+    const scoreBoard = document.getElementById("score");
+    const movieImage = document.getElementById("movieImage");
+    const modalContent = document.querySelector(".modal-content");
+
+    const movies = [
+      { name: "Барщина", image: "Термин%201.png" },
+      { name: "Вира", image: "Термин%202.png" },
+      { name: "Дьяк", image: "Термин%203.png" },
+      { name: "Земский собор", image: "Термин%204.png" },
+      { name: "Кириллица", image: "Термин%205.png" },
+      { name: "Летопись", image: "Термин%206.png" },
+      { name: "Повоз", image: "Термин%207.png" },
+      { name: "Православие", image: "Термин%208.png" },
+      { name: "Скань", image: "Термин%209.png" },
+      { name: "Темник", image: "Термин%2010.png" },
+    ];
+
+    let score;
+    let currentMovieIndex;
+    let warningShown = false;
+
+    function preloadImages() {
+      movies.forEach((movie) => {
+        const img = new Image();
+        img.src = movie.image;
+      });
+    }
+
+    function startGame() {
+      score = 0;
+      updateScore();
+      currentMovieIndex = 0;
+      getNextMovie();
+    }
+
+    //! Function to get a random movie
+    function getNextMovie() {
+      const currentMovie = movies[currentMovieIndex];
+      movieImage.src = currentMovie.image;
+    }
+
+    //! Function to check the user's guess
+    function checkGuess() {
+      const userGuess = guessInput.value.trim().toLowerCase();
+      const currentMovie = movies[currentMovieIndex];
+
+      if (userGuess === currentMovie.name.toLowerCase()) {
+        movieImage.style.boxShadow = "-1px 1px 25px 14px #52ffa880";
+        movieImage.style.outline = "3px solid #52ffa9";
+
+        setTimeout(() => {
+          score++;
+          updateScore();
+          currentMovieIndex++;
+          guessInput.value = "";
+          resetStyles();
+          scoreBoard.classList.add("animation");
+
+          if (score < movies.length) {
+            getNextMovie();
+          } else {
+            showWinGameModal();
+          }
+        }, 800);
+      } else if (userGuess === "") {
+        if (!warningShown) {
+          showWarningMessage();
+          warningShown = true;
+        }
+      } else {
+        movieImage.style.boxShadow = "-1px 1px 25px 16px #a20927";
+        movieImage.style.outline = "3px solid #a20927";
+        scoreBoard.classList.remove("animation");
+
+        if (!warningShown) {
+          currentMovieIndex++;
+        }
+        showGameOverModal();
+      }
+    }
+
+    //! Function to update the score display
+    function updateScore() {
+      scoreBoard.textContent = `Счёт: ${score}`;
+    }
+
+    //! Function to show the warning message
+    function showWarningMessage() {
+      modalContent.innerHTML = `
+    <p class="message">Пожалуйста, введите ответ на вопросы! 👀</p>
+    <button class="btn" onclick="closeModal()">Закрыть</button>
+  `;
+
+      modal.style.display = "flex";
+      document.addEventListener("keyup", closeModalOnEnter);
+    }
+
+    //! Function to show the game over modal
+    function showGameOverModal() {
+      modalContent.innerHTML = `
+    <p class="message">Квиз закончен! 😔</p>
+    <p>Ваш результат: ${score}</p>
+    <button class="btn" onclick="closeModal()">Закрыть</button>
+  `;
+
+      modal.style.display = "flex";
+      document.addEventListener("keyup", closeModalOnEnter);
+    }
+
+    //! Function to show the modal when the user win the game
+    function showWinGameModal() {
+      modalContent.innerHTML = `
+    <p class="message">Ура, вы выйграли! 🎉</p>
+    <p>Ваш результат: ${score}</p>
+    <button class="btn" onclick="closeModal()">Закрыть</button>
+  `;
+
+      modal.style.display = "flex";
+      scoreBoard.classList.remove("animation");
+      document.addEventListener("keyup", closeModalOnEnter);
+    }
+
+    //! Function to close the modal on Enter key press
+    function closeModalOnEnter(e) {
+      if (e.key === "Enter" && modal.style.display === "flex") {
+        modal.style.display = "none";
+        modalContent.innerHTML = "";
+        guessInput.value = "";
+        resetStyles();
+        document.removeEventListener("keyup", closeModalOnEnter);
+
+        if (!warningShown) {
+          startGame();
+        } else {
+          warningShown = false;
+        }
+      }
+    }
+
+    //! Function to close the modal by clicking "OK" button
+    function closeModal() {
+      modal.style.display = "none";
+      modalContent.innerHTML = "";
+      guessInput.value = "";
+      resetStyles();
+      document.removeEventListener("keyup", closeModalOnEnter);
+
+      if (!warningShown) {
+        startGame();
+      } else {
+        warningShown = false;
+      }
+    }
+
+    //! Event listener for the Enter key to automatically check the guess
+    document.addEventListener("keyup", function (e) {
+      if (e.key === "Enter" && modal.style.display !== "flex") {
+        checkGuess();
+      }
+    });
+
+    //! Function to focus on input
+    function focusOnInput() {
+      guessInput.focus();
+    }
+
+    //! Function to reset the styles
+    function resetStyles() {
+      movieImage.style.boxShadow = "";
+      movieImage.style.outline = "";
+    }
+
+    //! Get the cursor position in the input
+    guessInput.addEventListener("keyup", (e) => {
+      console.log("Caret at: ", e.target.selectionStart);
+    });
+
+    //! Start the game when the page loads
+    window.onload = startGame;
+    //# sourceURL=pen.js
+  </script>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="free-icon-mortarboard-2097098.png" />
+    <title>Обучающие мини-игры</title>
+    <style>
+      body {
+        font-family: "Multiround Pro";
+        margin: 0;
+        padding: 0;
+        background-color: #f0f5f9;
+        color: #2c3e50;
+      }
+
+      header {
+        background-color: #2980b9;
+        color: white;
+        padding: 20px 0;
+        text-align: center;
+        margin: 25px 65px;
+        border-radius: 30px;
+      }
+
+      footer {
+        background-color: white;
+        color: #2980b9;
+        padding: 20px 0;
+        text-align: center;
+        margin: 25px 65px;
+        border-radius: 30px;
+      }
+
+      main {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        margin: 20px;
+        border-radius: 30px;
+      }
+
+      .play-button {
+        font-family: "Multiround Pro";
+        background-color: #2980b9;
+        color: white;
+        border: 1px solid #2980b9;
+        padding: 20px 0;
+        width: 100%;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        border-radius: 30px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        transition: all, 0.5s;
+      }
+
+      .play-button:hover {
+        transform: translateY(-2px);
+        background: white;
+        color: #2980b9;
+      }
+
+      .play-icon {
+        position: absolute;
+        right: 112px;
+        bottom: 19px;
+        width: 20px;
+        height: 20px;
+      }
+
+      .cards {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .card {
+        position: relative;
+        width: 300px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 30px;
+        margin: 10px;
+        padding: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        color: #3498db;
+      }
+
+      .icon-card {
+        width: 100px;
+        height: 100px;
+      }
+
+      .card p {
+        margin-bottom: 60px;
+      }
+
+      .contact {
+        text-decoration: none;
+        color: #2980b9;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Логические игры</h1>
+      <p>Начните свое путешествие к умственным вызовам прямо сейчас!</p>
+    </header>
+
+    <main>
+      <div class="cards">
+        <div class="card">
+          <img class="icon-card" src="лабиринт.png" alt="Иконка карточки 1" />
+          <h2>Лабиринт</h2>
+          <p>
+            Найдите выход из запутанных лабиринтов, управляя шариком через
+            различные препятствия.
+          </p>
+          <a href="../labirint-game/labirint-game.html">
+            <button class="play-button">
+              Играть
+              <img class="play-icon" src="играть.png" alt="Иконка игры" />
+            </button>
+          </a>
+        </div>
+        <div class="card">
+          <img class="icon-card" src="куб.png" alt="Иконка карточки 2" />
+          <h2>Кубик Рубика</h2>
+          <p>
+            Разгадайте сложные комбинации на классическом головоломном кубике.
+          </p>
+          <a href="../cubik-rubika-game/cubik-rubika-game.html">
+            <button class="play-button">
+              Играть
+              <img class="play-icon" src="играть.png" alt="Иконка игры" />
+            </button>
+          </a>
+        </div>
+        <div class="card">
+          <img class="icon-card" src="математика.png" alt="Иконка карточки 3" />
+          <h2>Счёт в уме</h2>
+          <p>
+            Проверьте свои навыки в математике, решая увлекательные головоломки.
+          </p>
+          <a href="../math-game/math.html">
+            <button class="play-button">
+              Играть
+              <img class="play-icon" src="играть.png" alt="Иконка игры" />
+            </button>
+          </a>
+        </div>
+        <div class="card">
+          <img class="icon-card" src="история.png" alt="Иконка карточки 4" />
+          <h2>Исторический квиз</h2>
+          <p>
+            Пройдите тест на знание истории, вспоминая важные события и факты
+            прошлого.
+          </p>
+          <a href="../history-quiz/quiz.html">
+            <button class="play-button">
+              Играть
+              <img class="play-icon" src="играть.png" alt="Иконка игры" />
+            </button>
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <h1>Ирайте с удовольствием!</h1>
+      <p>
+        По вопросам обращайтесь:
+        <a class="contact" href="https://t.me/KHLLYXU">в телеграме</a>
+      </p>
+    </footer>
+  </body>
+</html>

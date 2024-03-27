@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="free-icon-maze-6757347.png">
+    <title>Лабиринт</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        p {
+            font-family: sans-serif;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            background: #ffd;
+            margin: 0;
+            padding: 0.5em;
+        }
+
+        .building p {
+            pointer-events: none;
+        }
+
+        svg {
+            width: 100vw;
+            height: calc(100vh - 3rem);
+        }
+
+        #ball {
+            fill: #c00;
+            transition: transform 0.3s ease-in;
+            pointer-events: none;
+        }
+
+        .solved #ball {
+            animation: grow 0.7s 0.3s ease-out forwards;
+        }
+
+        @keyframes grow {
+            to {
+                fill: #e08;
+                opacity: 0.3;
+                r: 38px;
+            }
+        }
+
+        line, g circle {
+            fill: none;
+            stroke: #000;
+            stroke-width: 4;
+            stroke-linecap: square;
+        }
+
+        path {
+            fill: none;
+            stroke: #080;
+            stroke-width: 4;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+            display: none;
+            pointer-events: none;
+        }
+
+        #center {
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        #center:hover ~ path {
+            display: inline;
+        }
+
+        #direct {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            width: 6rem;
+            height: 6rem;
+            transform: rotate(90deg);
+            transition: transform 0.3s ease-in, opacity 0.3s linear;
+            border: 2px solid #c00;
+            border-radius: 50%;
+            padding: 0.75rem;
+        }
+
+        .solved #direct, .building #direct {
+            opacity: 0;
+        }
+
+        .col, .row {
+            display: flex;
+            align-content: center;
+            align-items: stretch;
+        }
+
+        .col {
+            flex-direction: column;
+        }
+
+        .row {
+            flex-direction: row;
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            height: 2rem;
+        }
+
+        .row.spaced {
+            justify-content: space-between;
+        }
+
+        button {
+            box-sizing: border-box;
+            width: 2rem;
+            height: 2rem;
+            color: #c00;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        button:disabled {
+            font-weight: normal;
+        }
+    </style>
+    <script>
+        window.console = window.console || function (t) {
+        };
+    </script>
+</head>
+
+<body translate="no" class="">
+<svg viewBox="-350 -350 700 700">
+    <g>
+        <circle pathLength="8" id="center" r="40" style="stroke-dasharray: 2, 1, 5, 0; stroke-dashoffset: 0;"></circle>
+        <circle pathLength="16" r="60"
+                style="stroke-dasharray: 3, 1, 2, 1, 2, 2, 1, 1, 2, 1, 0; stroke-dashoffset: 0;"></circle>
+        <circle pathLength="16" r="80"
+                style="stroke-dasharray: 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0; stroke-dashoffset: 0;"></circle>
+        <circle pathLength="32" r="100"
+                style="stroke-dasharray: 3, 2, 8, 2, 1, 2, 2, 2, 1, 1, 3, 1, 2, 1, 1; stroke-dashoffset: -1;"></circle>
+        <circle pathLength="32" r="120"
+                style="stroke-dasharray: 3, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 3, 3, 1, 1, 2, 3, 2, 1, 0; stroke-dashoffset: 0;"></circle>
+        <circle pathLength="32" r="140"
+                style="stroke-dasharray: 1, 1, 1, 2, 2, 1, 1, 5, 2, 2, 1, 1, 4, 3, 1, 2, 1, 1; stroke-dashoffset: -1;"></circle>
+        <circle pathLength="32" r="160"
+                style="stroke-dasharray: 1, 1, 1, 1, 1, 3, 1, 5, 2, 5, 1, 1, 2, 1, 3, 1, 2, 0; stroke-dashoffset: 0;"></circle>
+        <circle pathLength="64" r="180"
+                style="stroke-dasharray: 1, 1, 2, 2, 6, 1, 1, 3, 5, 2, 2, 5, 1, 2, 4, 1, 7, 1, 2, 1, 2, 1, 1, 1, 4, 3, 1, 1, 0; stroke-dashoffset: 0;"></circle>
+        <circle pathLength="64" r="200"
+                style="stroke-dasharray: 1, 1, 2, 1, 4, 2, 1, 1, 1, 2, 2, 2, 1, 2, 1, 1, 2, 1, 2, 3, 3, 1, 3, 2, 2, 1, 1, 2, 1, 2, 1, 1, 5, 2, 1, 3; stroke-dashoffset: -3;"></circle>
+        <circle pathLength="64" r="220"
+                style="stroke-dasharray: 4, 4, 2, 1, 2, 1, 3, 1, 4, 1, 3, 2, 3, 2, 1, 1, 4, 1, 3, 3, 1, 1, 2, 3, 2, 1, 7, 1; stroke-dashoffset: -1;"></circle>
+        <circle pathLength="64" r="240"
+                style="stroke-dasharray: 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 3, 1, 5, 1, 2, 3, 2, 1, 1, 1, 1, 5, 2, 1, 1, 2, 4, 1, 2, 1, 2, 1, 3, 1, 1, 2, 1, 0; stroke-dashoffset: 0;"></circle>
+        <circle pathLength="64" r="260"
+                style="stroke-dasharray: 1, 1, 2, 2, 2, 2, 6, 3, 2, 1, 1, 2, 1, 1, 1, 2, 3, 1, 1, 3, 2, 1, 1, 6, 1, 3, 1, 2, 1, 5, 3; stroke-dashoffset: -3;"></circle>
+        <circle pathLength="64" r="280"
+                style="stroke-dasharray: 1, 1, 1, 1, 1, 2, 1, 3, 3, 2, 1, 3, 4, 3, 1, 1, 2, 4, 4, 1, 1, 2, 2, 1, 1, 2, 5, 1, 1, 3, 5; stroke-dashoffset: -5;"></circle>
+        <circle pathLength="64" r="300" style="stroke-dasharray: 54, 1, 9, 0; stroke-dashoffset: 0;"></circle>
+        <line pathLength="13" x1="40" y1="0" x2="300" y2="0"
+              style="stroke-dasharray: 2, 4, 1, 2, 2, 1, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="179.13325080099546" y1="17.64308525932091" x2="298.55541800165906"
+              y2="29.405142098868183" style="stroke-dasharray: 1, 2, 1, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="10" x1="98.07852804032305" y1="19.509032201612825" x2="294.2355841209691"
+              y2="58.527096604838476" style="stroke-dasharray: 1, 3, 5, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="172.24926043179758" y1="52.25124190580322" x2="287.08210071966266"
+              y2="87.0854031763387" style="stroke-dasharray: 1, 2, 2, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="12" x1="55.43277195067721" y1="22.961005941905388" x2="277.163859753386"
+              y2="114.80502970952693" style="stroke-dasharray: 2, 3, 1, 1, 1, 1, 3; stroke-dashoffset: -3;"></line>
+        <line pathLength="6" x1="158.7458275827039" y1="84.85141262867957" x2="264.57637930450653"
+              y2="141.4190210477993" style="stroke-dasharray: 3, 3, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="10" x1="83.14696123025452" y1="55.557023301960214" x2="249.44088369076357"
+              y2="166.67106990588064" style="stroke-dasharray: 1, 4, 1, 1, 2, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="139.14188160529267" y1="114.19079114945619" x2="231.9031360088211"
+              y2="190.31798524909365" style="stroke-dasharray: 1, 1, 2, 2, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="13" x1="28.284271247461902" y1="28.2842712474619" x2="212.13203435596427"
+              y2="212.13203435596424"
+              style="stroke-dasharray: 2, 1, 2, 1, 1, 1, 2, 1, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="6" x1="114.19079114945619" y1="139.14188160529267" x2="190.31798524909365"
+              y2="231.9031360088211" style="stroke-dasharray: 2, 3, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="10" x1="55.55702330196023" y1="83.14696123025452" x2="166.6710699058807"
+              y2="249.44088369076357" style="stroke-dasharray: 1, 1, 1, 5, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="84.85141262867961" y1="158.7458275827039" x2="141.41902104779933"
+              y2="264.5763793045065" style="stroke-dasharray: 2, 1, 3; stroke-dashoffset: -3;"></line>
+        <line pathLength="12" x1="22.96100594190539" y1="55.43277195067721" x2="114.80502970952695"
+              y2="277.163859753386" style="stroke-dasharray: 1, 3, 2, 1, 2, 1, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="52.25124190580322" y1="172.2492604317976" x2="87.0854031763387" y2="287.08210071966266"
+              style="stroke-dasharray: 2, 1, 1, 1, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="10" x1="19.509032201612833" y1="98.07852804032305" x2="58.5270966048385"
+              y2="294.2355841209691" style="stroke-dasharray: 1, 1, 1, 1, 2, 1, 2, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="17.643085259320937" y1="179.13325080099543" x2="29.405142098868232"
+              y2="298.55541800165906" style="stroke-dasharray: 1, 3, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="13" x1="2.4492935982947065e-15" y1="40" x2="1.8369701987210297e-14" y2="300"
+              style="stroke-dasharray: 1, 2, 3, 6, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="-17.643085259320916" y1="179.13325080099546" x2="-29.405142098868193"
+              y2="298.55541800165906" style="stroke-dasharray: 2, 3, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="10" x1="-19.50903220161282" y1="98.07852804032305" x2="-58.527096604838455"
+              y2="294.2355841209691" style="stroke-dasharray: 1, 2, 2, 2, 2, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="-52.25124190580319" y1="172.2492604317976" x2="-87.08540317633864"
+              y2="287.08210071966266" style="stroke-dasharray: 1, 3, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="12" x1="-22.961005941905384" y1="55.43277195067721" x2="-114.80502970952692"
+              y2="277.163859753386" style="stroke-dasharray: 3, 2, 1, 1, 1, 4; stroke-dashoffset: -4;"></line>
+        <line pathLength="6" x1="-84.85141262867958" y1="158.7458275827039" x2="-141.4190210477993"
+              y2="264.57637930450653" style="stroke-dasharray: 1, 1, 4; stroke-dashoffset: -4;"></line>
+        <line pathLength="10" x1="-55.55702330196019" y1="83.14696123025455" x2="-166.6710699058806"
+              y2="249.44088369076363" style="stroke-dasharray: 1, 1, 2, 1, 1, 1, 3, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="-114.19079114945617" y1="139.14188160529267" x2="-190.31798524909362"
+              y2="231.90313600882112" style="stroke-dasharray: 1, 3, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="13" x1="-28.2842712474619" y1="28.284271247461902" x2="-212.13203435596424"
+              y2="212.13203435596427" style="stroke-dasharray: 7, 1, 1, 2, 1, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="-139.14188160529267" y1="114.19079114945619" x2="-231.9031360088211"
+              y2="190.31798524909365" style="stroke-dasharray: 1, 4, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="10" x1="-83.14696123025453" y1="55.557023301960214" x2="-249.4408836907636"
+              y2="166.67106990588064" style="stroke-dasharray: 4, 1, 2, 2, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="-158.7458275827039" y1="84.85141262867961" x2="-264.5763793045065"
+              y2="141.41902104779936" style="stroke-dasharray: 5, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="12" x1="-55.43277195067721" y1="22.961005941905395" x2="-277.163859753386"
+              y2="114.80502970952696"
+              style="stroke-dasharray: 1, 1, 1, 1, 1, 1, 1, 2, 3; stroke-dashoffset: -3;"></line>
+        <line pathLength="6" x1="-172.24926043179758" y1="52.25124190580323" x2="-287.08210071966266"
+              y2="87.08540317633872" style="stroke-dasharray: 1, 5, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="10" x1="-98.07852804032305" y1="19.50903220161286" x2="-294.2355841209691"
+              y2="58.52709660483858" style="stroke-dasharray: 2, 2, 4, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="-179.13325080099543" y1="17.643085259320948" x2="-298.55541800165906"
+              y2="29.405142098868247" style="stroke-dasharray: 1, 3, 2, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="13" x1="-40" y1="4.898587196589413e-15" x2="-300" y2="3.6739403974420595e-14"
+              style="stroke-dasharray: 6, 2, 1, 1, 2, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="-179.13325080099546" y1="-17.643085259320905" x2="-298.55541800165906"
+              y2="-29.405142098868176" style="stroke-dasharray: 3, 1, 2, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="10" x1="-98.07852804032305" y1="-19.509032201612836" x2="-294.2355841209691"
+              y2="-58.527096604838505" style="stroke-dasharray: 3, 1, 1, 3, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="6" x1="-172.2492604317976" y1="-52.25124190580318" x2="-287.08210071966266"
+              y2="-87.08540317633863" style="stroke-dasharray: 2, 3, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="12" x1="-55.432771950677214" y1="-22.96100594190538" x2="-277.1638597533861"
+              y2="-114.8050297095269"
+              style="stroke-dasharray: 1, 1, 2, 2, 1, 1, 1, 1, 1, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="-158.7458275827039" y1="-84.85141262867957" x2="-264.57637930450653"
+              y2="-141.4190210477993" style="stroke-dasharray: 1, 2, 2, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="10" x1="-83.14696123025455" y1="-55.55702330196019" x2="-249.44088369076363"
+              y2="-166.6710699058806" style="stroke-dasharray: 2, 2, 1, 1, 2, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="6" x1="-139.14188160529267" y1="-114.19079114945615" x2="-231.90313600882112"
+              y2="-190.31798524909357" style="stroke-dasharray: 4, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="13" x1="-28.28427124746191" y1="-28.2842712474619" x2="-212.1320343559643"
+              y2="-212.13203435596424"
+              style="stroke-dasharray: 1, 3, 1, 1, 1, 3, 2, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="-114.19079114945627" y1="-139.1418816052926" x2="-190.31798524909377"
+              y2="-231.903136008821" style="stroke-dasharray: 6; stroke-dashoffset: -6;"></line>
+        <line pathLength="10" x1="-55.557023301960214" y1="-83.14696123025452" x2="-166.67106990588064"
+              y2="-249.44088369076357" style="stroke-dasharray: 2, 2, 2, 2, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="-84.85141262867961" y1="-158.7458275827039" x2="-141.41902104779936"
+              y2="-264.5763793045065" style="stroke-dasharray: 2, 2, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="12" x1="-22.96100594190542" y1="-55.43277195067719" x2="-114.8050297095271"
+              y2="-277.16385975338596"
+              style="stroke-dasharray: 3, 1, 1, 1, 1, 2, 2, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="-52.25124190580324" y1="-172.24926043179758" x2="-87.08540317633873"
+              y2="-287.08210071966266" style="stroke-dasharray: 1, 4, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="10" x1="-19.509032201612868" y1="-98.07852804032304" x2="-58.5270966048386"
+              y2="-294.2355841209691" style="stroke-dasharray: 1, 1, 1, 1, 2, 4; stroke-dashoffset: -4;"></line>
+        <line pathLength="6" x1="-17.64308525932088" y1="-179.13325080099546" x2="-29.405142098868136"
+              y2="-298.55541800165906" style="stroke-dasharray: 1, 2, 2, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="13" x1="-7.347880794884118e-15" y1="-40" x2="-5.510910596163089e-14" y2="-300"
+              style="stroke-dasharray: 2, 1, 1, 1, 3, 1, 1, 2, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="17.643085259320817" y1="-179.13325080099546" x2="29.405142098868026"
+              y2="-298.55541800165906" style="stroke-dasharray: 3, 3; stroke-dashoffset: -3;"></line>
+        <line pathLength="10" x1="19.50903220161283" y1="-98.07852804032305" x2="58.52709660483849"
+              y2="-294.2355841209691" style="stroke-dasharray: 2, 1, 1, 1, 1, 2, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="6" x1="52.25124190580317" y1="-172.2492604317976" x2="87.08540317633862"
+              y2="-287.08210071966266" style="stroke-dasharray: 1, 1, 1, 2, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="12" x1="22.961005941905402" y1="-55.4327719506772" x2="114.805029709527"
+              y2="-277.16385975338596" style="stroke-dasharray: 1, 1, 2, 3, 2, 1, 2, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="84.85141262867957" y1="-158.7458275827039" x2="141.41902104779928"
+              y2="-264.57637930450653" style="stroke-dasharray: 2, 1, 3, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="10" x1="55.557023301960186" y1="-83.14696123025455" x2="166.67106990588056"
+              y2="-249.44088369076363"
+              style="stroke-dasharray: 1, 1, 1, 1, 2, 1, 2, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="114.1907911494562" y1="-139.14188160529264" x2="190.31798524909368"
+              y2="-231.90313600882106" style="stroke-dasharray: 1, 3, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="13" x1="28.284271247461895" y1="-28.28427124746191" x2="212.1320343559642"
+              y2="-212.1320343559643" style="stroke-dasharray: 3, 5, 2, 2, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="139.1418816052926" y1="-114.19079114945627" x2="231.903136008821"
+              y2="-190.31798524909377" style="stroke-dasharray: 1, 2, 1, 2, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="10" x1="83.14696123025452" y1="-55.557023301960214" x2="249.44088369076357"
+              y2="-166.67106990588064" style="stroke-dasharray: 2, 2, 1, 3, 2; stroke-dashoffset: -2;"></line>
+        <line pathLength="6" x1="158.74582758270387" y1="-84.85141262867963" x2="264.5763793045065"
+              y2="-141.4190210477994" style="stroke-dasharray: 1, 2, 3; stroke-dashoffset: -3;"></line>
+        <line pathLength="12" x1="55.43277195067719" y1="-22.961005941905423" x2="277.16385975338596"
+              y2="-114.80502970952712"
+              style="stroke-dasharray: 1, 1, 1, 1, 1, 1, 4, 1, 1; stroke-dashoffset: -1;"></line>
+        <line pathLength="6" x1="172.24926043179758" y1="-52.25124190580325" x2="287.08210071966266"
+              y2="-87.08540317633874" style="stroke-dasharray: 1, 2, 1, 2, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="10" x1="98.07852804032304" y1="-19.50903220161287" x2="294.2355841209691"
+              y2="-58.52709660483862" style="stroke-dasharray: 2, 1, 5, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <line pathLength="6" x1="179.13325080099546" y1="-17.64308525932089" x2="298.55541800165906"
+              y2="-29.40514209886815" style="stroke-dasharray: 1, 1, 2, 1, 1, 0; stroke-dashoffset: 0;"></line>
+        <path d="M 184.6667843926542 -248.99433475900003 L 172.75279830280556 -232.93018412938713 A 290 290 0 0 1 194.7520969056353 -214.87582635293813 A 290 290 0 0 1 214.87582635293808 -194.75209690563543 A 290 290 0 0 1 232.93018412938707 -172.75279830280564 A 290 290 0 0 1 248.74129690007888 -149.08979581603435 A 290 290 0 0 1 262.1568950057985 -123.99097709478194 A 290 290 0 0 1 273.04777890307605 -97.6980574837438 A 290 290 0 0 1 281.30906342641777 -70.46425217194661 L 261.90843836252685 -65.60464857388133 A 270 270 0 0 1 267.07765769049087 -39.61722810294784 A 270 270 0 0 1 269.6747731753965 -13.248272068402885 L 289.6506822995 -14.229625554951246 A 290 290 0 0 1 289.6506822995 14.229625554951225 L 269.6747731753965 13.248272068402864 A 270 270 0 0 1 267.07765769049087 39.61722810294767 L 286.8611878897865 42.55183759205491 A 290 290 0 0 1 281.30906342641777 70.46425217194653 L 261.90843836252685 65.60464857388125 L 242.507813298636 60.745044975815965 A 250 250 0 0 1 235.3860162957552 84.22246334805502 A 250 250 0 0 1 225.99732328086083 106.88877335757053 A 250 250 0 0 1 214.43215250006804 128.5256860483054 L 197.2775803000626 118.24363116444098 L 180.12300810005715 107.96157628057655 A 210 210 0 0 1 168.67358161093543 125.096853943411 A 210 210 0 0 1 155.59973632454142 141.02738051787384 L 140.78071381744223 127.59620142093348 A 190 190 0 0 1 127.59620142093348 140.78071381744223 A 190 190 0 0 1 113.18286785356236 152.60943098132253 A 190 190 0 0 1 97.67952139671212 162.9684359000517 A 190 190 0 0 1 81.23546775175362 171.75796569345422 A 190 190 0 0 1 64.00907214452181 178.89337238477395 L 57.27127507667741 160.06249108111354 A 170 170 0 0 1 8.341504635661082 169.79522755487932 L 9.322858122209444 189.77113667898277 A 190 190 0 0 1 -9.322858122209421 189.77113667898277 A 190 190 0 0 1 -27.87879014651871 187.9435368933084 L -30.813399635625945 207.72706709260402 A 210 210 0 0 1 -51.02583777968541 203.70656317085422 A 210 210 0 0 1 -70.74686921236619 197.72425368843437 A 210 210 0 0 1 -89.78656962035919 189.83775155592312 A 210 210 0 0 1 -107.96157628057655 180.12300810005715 L -97.67952139671212 162.9684359000517 A 190 190 0 0 1 -113.18286785356234 152.60943098132253 L -125.096853943411 168.67358161093543 A 210 210 0 0 1 -141.02738051787387 155.5997363245414 L -154.45855961481425 170.41875883164056 A 230 230 0 0 0 -137.01084003325968 184.73773224054833 L -148.92482612310835 200.80188287016122 A 250 250 0 0 1 -167.8897387117546 185.23778133873975 A 250 250 0 0 1 -185.23778133873972 167.88973871175463 L -200.05680384583889 181.32091780869501 L -214.87582635293808 194.75209690563537 A 290 290 0 0 1 -232.930184129387 172.7527983028057 A 290 290 0 0 1 -248.74129690007888 149.08979581603433 A 290 290 0 0 1 -262.15689500579856 123.99097709478178 A 290 290 0 0 1 -273.047778903076 97.6980574837439 A 290 290 0 0 1 -281.30906342641777 70.46425217194658 L -261.90843836252685 65.60464857388129 A 270 270 0 0 0 -254.21689759941557 90.96026041589948 A 270 270 0 0 0 -244.0771091433297 115.43987522617614 L -225.99732328086083 106.88877335757051 L -207.91753741839196 98.33767148896487 L -189.8377515559231 89.78656962035923 L -171.75796569345422 81.23546775175359 L -153.67817983098536 72.68436588314795 L -132.28818965225324 70.70951052389968 A 150 150 0 0 1 -143.54105035983133 43.54270158816936 L -124.40224364518714 37.73700804308011 L -105.26343693054297 31.93131449799086 L -86.12463021589879 26.125620952901613 A 90 90 0 0 0 -74.83226510722908 50.001320971764194 L -58.20287286117817 38.889916311372154 L -41.573480615127266 27.778511650980107 A 50 50 0 0 0 -19.134171618254488 46.19397662556434 L 0 0"></path>
+    </g>
+    <circle id="ball" r="6" style="transform: translate(149.09px, -248.741px);"></circle>
+</svg>
+<p>Используйте кнопки со стрелками, чтобы переместить точку. Коснитесь центра или наведите на него курсор, чтобы
+    увидеть, как к нему добраться.
+    <br>Перезагрузитесь, чтобы получить новый лабиринт c <a href="javascript:init('prims')">короткими</a>, <a
+            href="javascript:init('depthFirst')">длинными</a> или любые <a
+            href="javascript:init('wilsons')">случайными</a> коридорами.</p>
+<div id="direct" class="col" style="transform: rotate(390.938deg);">
+    <div class="row">
+        <button id="btnUp1" style="display: none;">↑</button>
+        <button id="btnUp2" style="display: none;">↑</button>
+    </div>
+    <div class="row spaced">
+        <button id="btnLeft" style="" disabled="">←</button>
+        <button id="btnRight" style="">→</button>
+    </div>
+    <div class="row">
+        <button id="btnDown" style="">↓</button>
+    </div>
+</div>
+
+<script id="rendered-js">
+    const keys = [1, 2, 4, 8];
+    const maxC = 15;
+
+    const round = [...Array(maxC)].map((_, i) => 2 ** (keys.findLastIndex(j => j < i + 1)) * 8);
+    const maxP = round.slice(-1)[0];
+
+    const svgns = 'http://www.w3.org/2000/svg';
+
+    const chooseFrom = a => a[Math.random() * a.length | 0];
+
+    const polarToCartesian = (r, f) => [
+        r * 20 * Math.cos(f * 2 * Math.PI),
+        r * 20 * Math.sin(f * 2 * Math.PI)
+    ];
+
+    class Button {
+        constructor(el, callback) {
+            this.el = el;
+            el.addEventListener('click', () => callback(this.to));
+            el.addEventListener('touch', () => callback(this.to));
+
+            this.hide();
+        }
+
+        show(neighbour, closed) {
+            this.el.style.display = null;
+            this.el.disabled = closed;
+            this.to = neighbour;
+        }
+
+        hide() {
+            this.el.style.display = 'none';
+            this.to = null;
+        }
+    }
+
+    class Director {
+        constructor() {
+            this.direct = document.getElementById('direct');
+            this.ball = document.getElementById('ball');
+
+            this.move = {};
+            this.direct.querySelectorAll('button').forEach(el => {
+                const btn = new Button(el, this.setTo.bind(this));
+                this.move[el.id] = btn;
+            });
+        }
+
+        setTo(cell) {
+            const {r, f} = cell.polarCoordinates;
+            const [x, y] = polarToCartesian(r, f);
+
+            this.ball.style.transform = `translate(${x}px, ${y}px)`;
+            this.direct.style.transform = `rotate(${f * 360 + 90}deg)`;
+
+            for (const btn of Object.values(this.move)) {
+                btn.hide();
+            }
+
+            if (!cell.c) {
+                body.classList.add('solved');
+                return;
+            }
+
+            for (const [n, dir] of this.cells.neighbours(cell)) {
+                const [cat, w, r] = cell.getWall(n);
+
+                this.move['btn' + dir].show(n, this.walls.get(cat, w).isOpen(r));
+            }
+        }
+    }
+
+    class Cell {
+        #doubles = keys.slice(1);
+        #halfes = this.#doubles.map(j => j - 1);
+
+        constructor(c, p) {
+            this.c = c;
+            this.p = p;
+            this.maze = false;
+
+            const r = round[this.c];
+
+            this.neighbours = [];
+
+            if (this.c < maxC - 1) {
+                this.neighbours.push([this.c, (this.p - 1 + r) % r, 'Left']);
+                this.neighbours.push([this.c, (this.p + 1) % r, 'Right']);
+            }
+
+            if (this.insideLess) {
+                this.neighbours.push([this.c - 1, this.p >> 1, 'Down']);
+            } else if (this.c > 1) {
+                this.neighbours.push([this.c - 1, this.p, 'Down']);
+            } else if (this.c == 1) {
+                this.neighbours.push([0, 0, 'Down']);
+            }
+
+            if (this.outsideMore) {
+                this.neighbours.push([this.c + 1, this.p * 2, 'Up1']);
+                this.neighbours.push([this.c + 1, this.p * 2 + 1, 'Up2']);
+            } else if (this.c < maxC - 2) {
+                this.neighbours.push([this.c + 1, this.p, 'Up1']);
+            }
+        }
+
+        get polarCoordinates() {
+            return {
+                r: this.c ? this.c + 1.5 : 0,
+                f: (this.p * 2 + 1) / round[this.c] / 2
+            }
+        }
+
+        get outsideMore() {
+            return this.#halfes.includes(this.c);
+        }
+
+        get insideLess() {
+            return this.#doubles.includes(this.c);
+        }
+
+        after(cell) {
+            return (this.p || round[this.c]) - cell?.p == 1;
+        }
+
+        getWall(cell) {
+            if (cell.c < this.c) {
+                return ['c', this.c + 1, this.p];
+            } else if (cell.c > this.c) {
+                return ['c', cell.c + 1, cell.p];
+            } else {
+                const higher = this.after(cell) ? this : cell;
+                const ray = higher.p * maxP / round[higher.c];
+
+                return ['p', ray, this.c];
+            }
+        }
+    }
+
+    class Cells {
+        #o = [[new Cell(0, 0)]];
+
+        constructor() {
+            for (let c = 1; c < maxC - 1; c++) {
+                this.#o[c] = [];
+
+                for (let p = 0; p < round[c]; p++) {
+                    this.#o[c][p] = new Cell(c, p);
+                }
+            }
+        }
+
+        get(c, p) {
+            return this.#o[c]?.[p];
+        }
+
+        neighbours(cell) {
+            return cell.neighbours.map(([c, p, d]) => [this.get(c, p), d]);
+        }
+
+        fieldNeighbours(cell) {
+            return cell.neighbours?.map(([c, p]) => this.get(c, p)).filter(n => n.c);
+        }
+
+        get all() {
+            return this.#o.slice(1).flat();
+        }
+    }
+
+    class Wall {
+        constructor(primitive, length) {
+            this.primitive = document.createElementNS(svgns, primitive);
+            this.primitive.setAttribute('pathLength', length);
+
+            this.sectors = Array(length).fill(true);
+
+            root.appendChild(this.primitive);
+        }
+
+        sectorsToDashes() {
+            let array = [0],
+                last = false;
+
+            for (let s of this.sectors) {
+                if (s === last) {
+                    array[array.length - 1]++;
+                } else {
+                    array.push(1);
+                }
+
+                last = s;
+            }
+
+            const offset = array.shift();
+            array.push(offset);
+
+            this.primitive.style.strokeDasharray = array.join(' ');
+            this.primitive.style.strokeDashoffset = -offset;
+        }
+
+        async remove(sector) {
+            this.sectors[sector - this.base] = false;
+
+            await new Promise((resolve) => requestAnimationFrame(() => {
+                this.sectorsToDashes();
+
+                resolve();
+            }));
+
+        }
+
+        isOpen(sector) {
+            return this.sectors[sector - this.base];
+        }
+    }
+
+    class CircularWall extends Wall {
+        constructor(radius) {
+            const sectors = round[radius - 1];
+
+            super('circle', sectors);
+            this.base = 0;
+
+            if (radius == 2) this.primitive.setAttribute('id', 'center');
+            this.primitive.setAttribute('r', radius * 20);
+        }
+    }
+
+    class PerpendicularWall extends Wall {
+        constructor(ray) {
+            const min = round.findIndex((r, i) => i && !(ray % (maxP / r))) + 1
+
+            super('line', maxC - min);
+            this.base = min - 1;
+
+            const [x1, y1] = polarToCartesian(min, ray / maxP);
+            this.primitive.setAttribute('x1', x1);
+            this.primitive.setAttribute('y1', y1);
+
+            const [x2, y2] = polarToCartesian(maxC, ray / maxP);
+            this.primitive.setAttribute('x2', x2);
+            this.primitive.setAttribute('y2', y2);
+        }
+    }
+
+    class Walls {
+        #c = [];
+        #p = [];
+
+        constructor() {
+            for (let r = 2; r < maxC + 1; r++) {
+                this.#c[r] = new CircularWall(r);
+            }
+
+            for (let r = 0; r < maxP; r++) {
+                this.#p[r] = new PerpendicularWall(r);
+            }
+        }
+
+        get(cat, w) {
+            return cat == 'c' ? this.#c[w] : this.#p[w];
+        }
+    }
+
+    const walks = {
+        wilsons: async function (cells, walls) {
+            let available = cells.all.filter(cell => !cell.maze);
+
+            do {
+                let current = chooseFrom(available);
+
+                const walk = [current];
+
+                while (!current.maze) {
+                    const loop = walk.indexOf(current);
+                    if (loop >= 0) {
+                        walk.splice(loop + 1);
+                    }
+
+                    current = chooseFrom(cells.fieldNeighbours(current));
+
+                    walk.push(current);
+                }
+
+                for (let [i, c] of walk.entries()) {
+                    if (c.maze) break;
+
+                    const [cat, w, r] = c.getWall(walk[i + 1]);
+
+                    await walls.get(cat, w).remove(r);
+
+                    c.maze = walk[i + 1];
+                }
+
+                available = available.filter(cell => !cell.maze);
+            } while (available.length);
+        },
+
+        prims: async function (cells, walls, from) {
+            const eligable = new Set(cells.fieldNeighbours(from));
+
+            while (eligable.size) {
+                const step = chooseFrom([...eligable]);
+                const from = chooseFrom(cells.fieldNeighbours(step).filter(n => n.maze));
+
+                const [cat, w, r] = from.getWall(step);
+
+                await walls.get(cat, w).remove(r);
+
+                step.maze = from;
+
+                eligable.delete(step);
+                cells.fieldNeighbours(step).forEach(n => {
+                    if (!n.maze) eligable.add(n);
+                });
+            }
+        },
+
+        depthFirst: async function (cells, walls, from) {
+            do {
+                const step = chooseFrom(cells.fieldNeighbours(from).filter(n => !n.maze));
+
+                const [cat, w, r] = from.getWall(step);
+
+                await walls.get(cat, w).remove(r);
+
+                step.maze = from;
+                from = step;
+
+                while (cells.fieldNeighbours(from)?.every(n => n.maze)) {
+                    from = from.maze;
+                }
+            } while (typeof from.maze == 'object');
+        }
+    }
+
+    function stepBackwards(step) {
+        const steps = [step];
+
+        while (typeof step.maze == 'object') {
+            step = step.maze;
+            steps.push(step);
+        }
+
+        return steps;
+    }
+
+    function solve(cells, start, end) {
+        const s1 = stepBackwards(cells.get(maxC - 2, start));
+        const s2 = stepBackwards(cells.get(1, end));
+        const startCell = new Cell(maxC - 1, start);
+
+        while (s1.slice(-2)[0] === s2.slice(-2)[0]) {
+            s1.splice(-1);
+            s2.splice(-1);
+        }
+        s1.splice(-1);
+
+        const solution = s1.concat(s2.reverse());
+        solution.unshift(startCell);
+
+        const polar = solution.map((cell, i) => ({
+            ...cell.polarCoordinates,
+            o: cell.outsideMore,
+            s: cell.after(solution[i + 1]) ? 0 : 1
+        }));
+
+        const d = ['M'];
+
+        polar.forEach(({r, f, o, s}, i) => {
+            const prev = polar[i - 1];
+            const next = polar[i + 1];
+
+            if (prev && r < prev.r && o) {
+                f = prev.f;
+            }
+            if (next && r < next.r && o) {
+                if (prev && r < prev.r) {
+                    d.push(...polarToCartesian(r, f));
+                }
+                f = next.f;
+            }
+
+            d.push(...polarToCartesian(r, f));
+
+            if (next && r == next.r) {
+                d.push('A', r * 20, r * 20, 0, 0, s);
+            } else {
+                d.push('L')
+            }
+        });
+
+        d.push(0, 0);
+
+        const path = document.createElementNS(svgns, 'path');
+        path.setAttribute('d', d.join(' '));
+        root.appendChild(path);
+
+        return startCell;
+    }
+
+    async function init(algorithm) {
+        const size = maxC * 20 + 50;
+        document.querySelector('svg').setAttribute('viewBox', [-size, -size, 2 * size, 2 * size].join(' '));
+
+        root.textContent = '';
+        body.classList.remove('solved');
+        body.classList.add('building');
+
+        const cells = director.cells = new Cells();
+        const walls = director.walls = new Walls();
+
+        const from = chooseFrom(cells.all)
+        from.maze = true;
+        await walks[algorithm](cells, walls, from);
+
+        const start = Math.random() * maxP | 0;
+        const end = Math.random() * 8 | 0;
+
+        await walls.get('c', maxC).remove(start);
+        await walls.get('c', 2).remove(end);
+
+        const currentCell = solve(cells, start, end);
+
+        body.classList.remove('building');
+        director.setTo(currentCell);
+    }
+
+    const body = document.querySelector('body');
+    const root = document.querySelector('svg g');
+
+    const director = new Director();
+
+    init('wilsons');
+</script>
+</body>
+</html>
